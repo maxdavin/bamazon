@@ -60,15 +60,15 @@ function buyItem() {
           choices: function() {
             var choiceArray = [];
             for (var i = 0; i < results.length; i++) {
-              choiceArray.push(results[i].id);
+              choiceArray.push(results[i].product_name);
             }
             return choiceArray;
           },
-          message: "What item do you want to buy? (use the item ID#)"
+          message: "What item do you want to buy? (enter the ID# or when selected, press enter)"
         },
         {
           name: "stock",
-          type: "input",
+          type: "number",
           message: "How many would you like to buy?"
         }
       ])
@@ -76,27 +76,26 @@ function buyItem() {
         // get the information of the chosen item
         var chosenItem;
         for (var i = 0; i < results.length; i++) {
-          if (results[i].id === answer.choice) {
+          if (results[i].product_name === answer.choice) {
             chosenItem = results[i];
           }
         }
 
         // determine if stock is enough
-        if (chosenItem.amount_stock < parseInt(answer.stock)) {
+        if (chosenItem.stock_quantity > parseInt(answer.stock)) {
           // bid was high enough, so update db, let the user know, and start over
           connection.query(
-            "UPDATE products SET ? WHERE ?",
+            "UPDATE products SET stock_quantity = stock_quantity -  ? WHERE ?",
             [
-              {
-                amount_stock: answer.stock
-              },
+               answer.stock,
               {
                 id: chosenItem.id
               }
             ],
             function(error) {
               if (error) throw err;
-              console.log("Bid placed successfully!");
+              console.log("We have enough in stock!");
+              console.log("Thank you for your business! Your total is " + "$" + parseInt(answer.stock) * chosenItem.price);
               start();
             }
           );
